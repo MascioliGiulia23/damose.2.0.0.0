@@ -1,0 +1,292 @@
+/**
+ * Damose 2.0 - Base CSS Styles
+ *
+ * This CSS file provides base styling for all HTML backgrounds used in the application.
+ * HTML files can optionally include this CSS for consistent styling.
+ *
+ * IMPORTANT: This CSS is for VISUAL STYLING ONLY, no interactive elements.
+ */
+
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    background: white;
+}
+
+/* Accent Panel - Automatically themed by Java */
+.accent-panel {
+    /* Background color will be set dynamically by ThemeManager */
+    background: #D9D9D9; /* Default gray, will be replaced */
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    transition: background-color 0.3s ease;
+}
+
+/* Background Panel - Static, not themed */
+.background-panel {
+    background: white;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Common rounded corners */
+.rounded-sm {
+    border-radius: 8px;
+}
+
+.rounded-md {
+    border-radius: 16px;
+}
+
+.rounded-lg {
+    border-radius: 24px;
+}
+
+/* Text styles */
+.text-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 36px;
+    font-weight: 400;
+    color: black;
+}
+
+.text-subtitle {
+    font-family: 'Poppins', sans-serif;
+    font-size: 24px;
+    font-weight: 400;
+    color: black;
+}
+
+.text-body {
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: #333;
+}
+
+.text-small {
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #666;
+}
+
+/* SVG icon containers */
+.icon-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-sm {
+    width: 24px;
+    height: 24px;
+}
+
+.icon-md {
+    width: 32px;
+    height: 32px;
+}
+
+.icon-lg {
+    width: 48px;
+    height: 48px;
+}
+
+/* Control overlay areas (where JavaFX controls will be placed) */
+.control-overlay-area {
+    position: absolute;
+    /* Size and position will be set inline per element */
+}
+
+/* Hover effects for panels (optional, for visual feedback) */
+.accent-panel.hoverable:hover {
+    filter: brightness(1.05);
+    cursor: pointer;
+}
+
+/* Disabled state styling */
+.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Shadow variations */
+.shadow-sm {
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.15);
+}
+
+.shadow-md {
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.shadow-lg {
+    box-shadow: 0px 8px 8px rgba(0, 0, 0, 0.30);
+}
+
+/* Utility classes */
+.absolute {
+    position: absolute;
+}
+
+.relative {
+    position: relative;
+}
+
+.flex {
+    display: flex;
+}
+
+.flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Fade in animation (optional) */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+/* No selection (prevents text selection on background) */
+.no-select {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+/* Full viewport container */
+.view-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: white;
+    overflow: hidden;
+}
+
+/* Standard view size (can be adjusted) */
+.view-standard {
+    width: 1440px;
+    height: 1024px;
+}
+
+/* Header area */
+.header-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 178px;
+}
+
+/* Content area */
+.content-area {
+    position: absolute;
+    top: 178px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* Card components */
+.card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.15);
+    padding: 20px;
+}
+
+.card-sm {
+    padding: 15px;
+}
+
+.card-lg {
+    padding: 30px;
+}
+
+/* Badge styles (for severity indicators, etc) */
+.badge {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 15px;
+    font-weight: bold;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    text-align: center;
+}
+
+.badge-high {
+    background-color: #F44336;
+    color: white;
+}
+
+.badge-medium {
+    background-color: #FF9800;
+    color: white;
+}
+
+.badge-low {
+    background-color: #4CAF50;
+    color: white;
+}
+
+/* Responsive text (scales with container) */
+@media (max-width: 1440px) {
+    .text-title {
+        font-size: 28px;
+    }
+
+    .text-subtitle {
+        font-size: 20px;
+    }
+}
+
+/* Print styles (hide decorative elements when printing) */
+@media print {
+    .accent-panel,
+    .background-panel {
+        box-shadow: none;
+    }
+
+    .no-print {
+        display: none;
+    }
+}
+
+/* Accessibility: High contrast mode support */
+@media (prefers-contrast: high) {
+    .accent-panel {
+        border: 2px solid black;
+    }
+
+    .text-small,
+    .text-body {
+        color: black;
+    }
+}
+
+/* Accessibility: Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

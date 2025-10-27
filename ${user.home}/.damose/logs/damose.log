@@ -842,3 +842,19 @@
 2025-10-27 13:44:28.508 [INFO] [RealtimeDataSyncService] Sync cycle completed successfully (duration: 4771ms)
 2025-10-27 13:44:28.509 [INFO] [RealtimeDataSyncService] Current state: 1246 vehicles, 0 incidents
 2025-10-27 13:44:28.510 [INFO] [RealtimeDataSyncService] === Sync cycle #67 COMPLETED ===
+2025-10-27 13:44:53.793 [INFO] [RealtimeDataSyncService] === Starting sync cycle #68 ===
+2025-10-27 13:44:54.000 [INFO] [RealtimeDataSyncService] Syncing vehicle positions...
+2025-10-27 13:44:54.699 [INFO] [RealtimeDataSyncService] Parsed 1250 vehicle positions from real-time feed
+2025-10-27 13:45:05.842 [INFO] [RealtimeDataSyncService] Saving 1250 vehicles to database...
+2025-10-27 13:45:13.649 [INFO] [RealtimeDataSyncService] Database update complete: 0 new, 1250 updated, 0 errors
+2025-10-27 13:45:13.651 [INFO] [RealtimeDataSyncService] Syncing trip updates...
+2025-10-27 13:45:14.200 [INFO] [RealtimeDataSyncService] Parsed 23494 trip updates from real-time feed
+2025-10-27 13:45:22.639 [ERROR] [RealtimeDataSyncService] Error downloading/parsing trip updates: [SQLITE_CONSTRAINT_NOTNULL] A NOT NULL constraint failed (NOT NULL constraint failed: trip_updates.trip_id)
+2025-10-27 13:45:22.641 [WARN] [RealtimeDataSyncService] No trip update data available (live or cached)
+2025-10-27 13:45:22.833 [INFO] [RealtimeDataSyncService] Sync cycle completed successfully (duration: 28833ms)
+2025-10-27 13:45:22.835 [INFO] [RealtimeDataSyncService] Current state: 1250 vehicles, 0 incidents
+2025-10-27 13:45:22.863 [INFO] [RealtimeDataSyncService] === Sync cycle #68 COMPLETED ===
+2025-10-27 13:45:23.755 [INFO] [RealtimeDataSyncService] === Starting sync cycle #69 ===
+2025-10-27 13:45:23.763 [INFO] [RealtimeDataSyncService] Syncing vehicle positions...
+2025-10-27 13:45:23.960 [INFO] [RealtimeDataSyncService] Parsed 1243 vehicle positions from real-time feed
+2025-10-27 14:28:51.769 [INFO] [RealtimeDataSyncService] Saving 1243 vehicles to database...
