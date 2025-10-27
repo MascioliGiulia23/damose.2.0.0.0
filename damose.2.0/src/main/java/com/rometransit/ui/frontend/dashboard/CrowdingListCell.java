@@ -15,7 +15,7 @@ import javafx.scene.layout.Region;
  */
 public class CrowdingListCell extends ListCell<VehicleCrowdingData> {
 
-    private final HBox container;
+    private final HBox container;uuuuuuu
     private final Label routeLabel;
     private final ProgressBar progressBar;
     private final Label percentageLabel;
