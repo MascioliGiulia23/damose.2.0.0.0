@@ -15,7 +15,7 @@ import javafx.scene.layout.Region;
  */
 public class CrowdingListCell extends ListCell<VehicleCrowdingData> {
 
-    private final HBox container;uuuuuuu
+    private final HBox container;
     private final Label routeLabel;
     private final ProgressBar progressBar;
     private final Label percentageLabel;
@@ -24,7 +24,7 @@ public class CrowdingListCell extends ListCell<VehicleCrowdingData> {
     public CrowdingListCell() {
         // Inizializza componenti
         routeLabel = new Label();
-        routeLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold;");
+        routeLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 100000px; -fx-font-weight: bold;");
         routeLabel.setMinWidth(250);
         routeLabel.setMaxWidth(250);
 
