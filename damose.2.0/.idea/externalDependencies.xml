@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ExternalDependencies">
+    <!-- Specifica che questo progetto richiede Java 22 -->
+    <!-- IntelliJ proporrà automaticamente di scaricare JDK 22 se mancante -->
+    <dependency>
+      <groupId>com.jetbrains</groupId>
+      <artifactId>java-runtime</artifactId>
+      <version>22</version>
+    </dependency>
+  </component>
+</project>

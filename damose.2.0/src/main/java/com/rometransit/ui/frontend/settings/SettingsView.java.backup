@@ -1,0 +1,691 @@
+package com.rometransit.ui.frontend.settings;
+
+import com.rometransit.ui.frontend.home.HomeView;
+import com.rometransit.ui.frontend.settings.AccountSettingsView;
+import com.rometransit.ui.frontend.settings.NotificationSettingsView;
+import com.rometransit.ui.frontend.settings.AppearanceSettingsView;
+import com.rometransit.ui.frontend.settings.LanguageSettingsView;
+import com.rometransit.ui.frontend.settings.PrivacySettingsView;
+import com.rometransit.ui.frontend.settings.AboutSettingsView;
+import com.rometransit.service.user.PreferencesService;
+import com.rometransit.service.auth.AuthService;
+import com.rometransit.service.data.DataSyncService;
+import com.rometransit.service.gtfs.GTFSOnlineDataService;
+import com.rometransit.service.gtfs.GTFSDataManager;
+import com.rometransit.service.network.OfflineModeManager;
+import com.rometransit.util.language.LanguageManager;
+import com.rometransit.util.logging.Logger;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.application.Platform;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
+import javafx.stage.Stage;
+import javafx.util.Duration;
+import java.net.URL;
+import java.nio.file.Path;
+import java.util.Map;
+
+public class SettingsView {
+
+    private static final Logger logger = Logger.getLogger(SettingsView.class);
+    private static final String DEFAULT_USER_ID = "default_user";
+
+    private Stage stage;
+    private WebEngine webEngine;
+    private boolean listenersConfigured = false;
+
+    // Services
+    private PreferencesService preferencesService;
+    private AuthService authService;
+    private DataSyncService dataSyncService;
+    private GTFSOnlineDataService onlineDataService;
+    private LanguageManager languageManager;
+    private OfflineModeManager offlineModeManager;
+    private GTFSDataManager gtfsDataManager;
+
+    public SettingsView(Stage stage) {
+        this.stage = stage;
+        initializeServices();
+    }
+
+    private void initializeServices() {
+        try {
+            logger.info("Initializing settings services...");
+
+            this.preferencesService = new PreferencesService();
+            this.authService = AuthService.getInstance();
+            this.dataSyncService = new DataSyncService();
+            this.onlineDataService = new GTFSOnlineDataService();
+            this.languageManager = LanguageManager.getInstance();
+            this.offlineModeManager = OfflineModeManager.getInstance();
+            this.gtfsDataManager = GTFSDataManager.getInstance();
+
+            logger.info("Settings services initialized successfully");
+        } catch (Exception e) {
+            logger.error("Failed to initialize settings services", e);
+        }
+    }
+
+    public void show() {
+        // WebView for HTML rendering
+        WebView webView = new WebView();
+        this.webEngine = webView.getEngine();
+
+        // Load HTML with language-aware path
+        loadHTMLBackground(webView);
+
+        // Setup language change listener to reload HTML
+        setupLanguageListener(webView);
+
+        // Home Button
+        Button homeButton = new Button();
+        homeButton.setPrefSize(35, 35);
+        homeButton.setStyle(
+                "-fx-background-color: rgba(0,0,0,0); " +
+                "-fx-border-color: #ccc; " +
+                "-fx-border-radius: 5px; " +
+                "-fx-background-radius: 5px; " +
+                "-fx-font-size: 12px;"
+        );
+        homeButton.setOnAction(e -> {
+            try {
+                HomeView homeView = new HomeView(stage);
+                homeView.show();
+            } catch (Exception ex) {
+                logger.error("Error opening Home", ex);
+            }
+        });
+
+        // Settings sub-menu buttons
+        Button accountButton = new Button();
+        Button notificationsButton = new Button();
+        Button appearanceButton = new Button();
+        Button languageButton = new Button();
+        Button privacyButton = new Button();
+        Button aboutButton = new Button();
+
+        Button[] buttons = {accountButton, notificationsButton, appearanceButton, languageButton, privacyButton, aboutButton};
+        for (Button btn : buttons) {
+            btn.setPrefSize(35, 35);
+            btn.setStyle(
+                    "-fx-background-color: rgba(0,0,0,0); " +
+                    "-fx-border-color: #ccc; " +
+                    "-fx-border-radius: 5px; " +
+                    "-fx-background-radius: 5px; " +
+                    "-fx-font-size: 12px;"
+            );
+        }
+
+        // Button actions
+        accountButton.setOnAction(e -> { try { new AccountSettingsView(stage, authService).show(); } catch (Exception ex) { logger.error("Error opening Account", ex); } });
+        notificationsButton.setOnAction(e -> { try { new NotificationSettingsView(stage).show(); } catch (Exception ex) { logger.error("Error opening Notifications", ex); } });
+        appearanceButton.setOnAction(e -> { try { new AppearanceSettingsView(stage).show(); } catch (Exception ex) { logger.error("Error opening Appearance", ex); } });
+        languageButton.setOnAction(e -> { try { new LanguageSettingsView(stage).show(); } catch (Exception ex) { logger.error("Error opening Language", ex); } });
+        privacyButton.setOnAction(e -> { try { new PrivacySettingsView(stage).show(); } catch (Exception ex) { logger.error("Error opening Privacy", ex); } });
+        aboutButton.setOnAction(e -> { try { new AboutSettingsView(stage).show(); } catch (Exception ex) { logger.error("Error opening About", ex); } });
+
+        // Layout
+        AnchorPane root = new AnchorPane();
+        root.getChildren().addAll(webView, homeButton, accountButton, notificationsButton, appearanceButton, languageButton, privacyButton, aboutButton);
+
+        // Home button on the left
+        AnchorPane.setTopAnchor(homeButton, 70.0);
+        AnchorPane.setLeftAnchor(homeButton, 28.0);
+
+        // Other buttons on the right, customizable coordinates
+        AnchorPane.setTopAnchor(accountButton, 210.0);
+        AnchorPane.setRightAnchor(accountButton, 373.0);
+
+        AnchorPane.setTopAnchor(notificationsButton, 330.0);
+        AnchorPane.setRightAnchor(notificationsButton, 373.0);
+
+        AnchorPane.setTopAnchor(appearanceButton, 460.0);
+        AnchorPane.setRightAnchor(appearanceButton, 373.0);
+
+        AnchorPane.setTopAnchor(languageButton, 587.0);
+        AnchorPane.setRightAnchor(languageButton, 373.0);
+
+        AnchorPane.setTopAnchor(privacyButton, 719.0);
+        AnchorPane.setRightAnchor(privacyButton, 373.0);
+
+        AnchorPane.setTopAnchor(aboutButton, 845.0);
+        AnchorPane.setRightAnchor(aboutButton, 373.0);
+
+        // WebView dimensions
+        webView.setPrefSize(1440, 1000);
+        AnchorPane.setTopAnchor(webView, 0.0);
+        AnchorPane.setLeftAnchor(webView, 0.0);
+
+        // Configure window
+        Scene scene = new Scene(root, 1440, 1000);
+        stage.setTitle("Damose - Settings Interface");
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    private void applyTheme() {
+        try {
+            String color = ThemeManager.getAccent();
+            webEngine.executeScript(
+                "document.querySelectorAll('.accent-panel')" +
+                ".forEach(div => div.style.background = '" + color + "');"
+            );
+        } catch (Exception e) {
+            logger.error("Error applying theme", e);
+        }
+    }
+
+    private void loadUserPreferences() {
+        try {
+            logger.info("Loading user preferences...");
+
+            // Get user preferences
+            var prefs = preferencesService.getUserPreferences(DEFAULT_USER_ID);
+
+            // Apply theme preference
+
+
+            // Apply language preference
+            String languageCode = prefs.getPreferredLanguage();
+            if (languageCode != null) {
+                languageManager.setLanguage(languageCode);
+            }
+
+            logger.info("User preferences loaded successfully");
+        } catch (Exception e) {
+            logger.error("Error loading user preferences", e);
+        }
+    }
+
+    private void setupSettingsHandlers() {
+        try {
+            // Setup JavaScript bridge for settings interactions
+            setupThemeHandler();
+            setupLanguageHandler();
+            setupGTFSDataHandler();
+            setupOfflineModeHandler();
+            setupCacheHandler();
+            setupSyncHandler();
+
+            logger.info("Settings handlers configured");
+        } catch (Exception e) {
+            logger.error("Error setting up settings handlers", e);
+        }
+    }
+
+    private void setupThemeHandler() {
+        // Poll for theme change requests from JavaScript
+        Timeline themeCheckTimeline = new Timeline(new KeyFrame(
+            Duration.seconds(1),
+            event -> {
+                try {
+                    Object themeChange = webEngine.executeScript("window.changeTheme");
+                    if (themeChange != null && themeChange instanceof String) {
+                        String theme = (String) themeChange;
+
+                        // Filter out invalid values (including "undefined" from JavaScript)
+                        if (theme.equals("undefined") || theme.equals("null")) {
+                            return;
+                        }
+
+                        webEngine.executeScript("window.changeTheme = null;");
+
+                        boolean darkMode = theme.equals("dark");
+                        preferencesService.setTheme(DEFAULT_USER_ID, darkMode);
+                        ThemeManager.setDarkMode(darkMode);
+                        applyTheme();
+
+                        logger.info("Theme changed to: " + theme);
+                    }
+                } catch (Exception e) {
+                    // Silently ignore
+                }
+            }
+        ));
+        themeCheckTimeline.setCycleCount(Timeline.INDEFINITE);
+        themeCheckTimeline.play();
+    }
+
+    private void setupLanguageHandler() {
+        // Poll for language change requests
+        Timeline languageCheckTimeline = new Timeline(new KeyFrame(
+            Duration.seconds(1),
+            event -> {
+                try {
+                    Object languageChange = webEngine.executeScript("window.changeLanguage");
+                    if (languageChange != null && languageChange instanceof String) {
+                        String langCode = (String) languageChange;
+                        webEngine.executeScript("window.changeLanguage = null;");
+
+                        preferencesService.setPreferredLanguage(DEFAULT_USER_ID, langCode);
+                        languageManager.setLanguage(langCode);
+
+                        logger.info("Language changed to: " + langCode);
+
+                        // Notify UI of language change
+                        Platform.runLater(() -> {
+                            webEngine.executeScript(
+                                "if(typeof onLanguageChanged === 'function') { " +
+                                "onLanguageChanged('" + langCode + "'); }"
+                            );
+                        });
+                    }
+                } catch (Exception e) {
+                    // Silently ignore
+                }
+            }
+        ));
+        languageCheckTimeline.setCycleCount(Timeline.INDEFINITE);
+        languageCheckTimeline.play();
+    }
+
+    private void setupGTFSDataHandler() {
+        // Poll for GTFS data operations
+        Timeline gtfsCheckTimeline = new Timeline(new KeyFrame(
+            Duration.seconds(1),
+            event -> {
+                try {
+                    // Check for download request
+                    Object downloadRequest = webEngine.executeScript("window.downloadGTFSData");
+                    if (downloadRequest != null && (Boolean) downloadRequest) {
+                        webEngine.executeScript("window.downloadGTFSData = false;");
+                        downloadGTFSData();
+                    }
+
+                    // Check for clear request
+                    Object clearRequest = webEngine.executeScript("window.clearGTFSData");
+                    if (clearRequest != null && (Boolean) clearRequest) {
+                        webEngine.executeScript("window.clearGTFSData = false;");
+                        clearGTFSData();
+                    }
+
+                    // Check for sync request
+                    Object syncRequest = webEngine.executeScript("window.syncGTFSData");
+                    if (syncRequest != null && (Boolean) syncRequest) {
+                        webEngine.executeScript("window.syncGTFSData = false;");
+                        syncGTFSData();
+                    }
+                } catch (Exception e) {
+                    // Silently ignore
+                }
+            }
+        ));
+        gtfsCheckTimeline.setCycleCount(Timeline.INDEFINITE);
+        gtfsCheckTimeline.play();
+    }
+
+    private void setupOfflineModeHandler() {
+        // Update offline mode status periodically
+        Timeline offlineCheckTimeline = new Timeline(new KeyFrame(
+            Duration.seconds(5),
+            event -> updateOfflineModeStatus()
+        ));
+        offlineCheckTimeline.setCycleCount(Timeline.INDEFINITE);
+        offlineCheckTimeline.play();
+    }
+
+    private void setupCacheHandler() {
+        // Poll for cache operations
+        Timeline cacheCheckTimeline = new Timeline(new KeyFrame(
+            Duration.seconds(1),
+            event -> {
+                try {
+                    Object clearCacheRequest = webEngine.executeScript("window.clearCache");
+                    if (clearCacheRequest != null && (Boolean) clearCacheRequest) {
+                        webEngine.executeScript("window.clearCache = false;");
+                        clearCache();
+                    }
+
+                    Object viewCacheRequest = webEngine.executeScript("window.viewCacheStats");
+                    if (viewCacheRequest != null && (Boolean) viewCacheRequest) {
+                        webEngine.executeScript("window.viewCacheStats = false;");
+                        viewCacheStats();
+                    }
+                } catch (Exception e) {
+                    // Silently ignore
+                }
+            }
+        ));
+        cacheCheckTimeline.setCycleCount(Timeline.INDEFINITE);
+        cacheCheckTimeline.play();
+    }
+
+    private void setupSyncHandler() {
+        // Poll for sync operations
+        Timeline syncCheckTimeline = new Timeline(new KeyFrame(
+            Duration.seconds(1),
+            event -> {
+                try {
+                    Object syncNowRequest = webEngine.executeScript("window.syncNow");
+                    if (syncNowRequest != null && (Boolean) syncNowRequest) {
+                        webEngine.executeScript("window.syncNow = false;");
+                        syncData();
+                    }
+                } catch (Exception e) {
+                    // Silently ignore
+                }
+            }
+        ));
+        syncCheckTimeline.setCycleCount(Timeline.INDEFINITE);
+        syncCheckTimeline.play();
+    }
+
+    private void updateSettingsUI() {
+        try {
+            // Update language selector
+            String currentLang = languageManager.getCurrentLanguageCode();
+            webEngine.executeScript(
+                "if(typeof setCurrentLanguage === 'function') { " +
+                "setCurrentLanguage('" + currentLang + "'); }"
+            );
+
+            // Update theme selector
+            boolean isDarkMode = preferencesService.isDarkThemeEnabled(DEFAULT_USER_ID);
+            webEngine.executeScript(
+                "if(typeof setCurrentTheme === 'function') { " +
+                "setCurrentTheme('" + (isDarkMode ? "dark" : "light") + "'); }"
+            );
+
+            // Update offline mode status
+            updateOfflineModeStatus();
+
+            // Update GTFS data status
+            updateGTFSDataStatus();
+
+            logger.info("Settings UI updated");
+        } catch (Exception e) {
+            logger.error("Error updating settings UI", e);
+        }
+    }
+
+    private void updateOfflineModeStatus() {
+        try {
+            Map<String, Object> offlineStatus = offlineModeManager.getOfflineStatus();
+            boolean isOffline = (boolean) offlineStatus.get("isOfflineMode");
+            long offlineDuration = (long) offlineStatus.get("offlineDurationMinutes");
+
+            Platform.runLater(() -> {
+                webEngine.executeScript(
+                    "if(typeof updateOfflineStatus === 'function') { " +
+                    "updateOfflineStatus(" + isOffline + ", " + offlineDuration + "); }"
+                );
+            });
+        } catch (Exception e) {
+            logger.error("Error updating offline mode status", e);
+        }
+    }
+
+    private void updateGTFSDataStatus() {
+        try {
+            boolean isLoaded = gtfsDataManager.isStaticDataLoaded();
+            Map<String, Object> downloadStats = onlineDataService.getDownloadStats();
+
+            Platform.runLater(() -> {
+                webEngine.executeScript(
+                    "if(typeof updateGTFSDataStatus === 'function') { " +
+                    "updateGTFSDataStatus(" + isLoaded + ", " +
+                    "'" + downloadStats.getOrDefault("lastFileSizeFormatted", "N/A") + "', " +
+                    "'" + downloadStats.getOrDefault("lastDownloadTime", "Never") + "'); }"
+                );
+            });
+        } catch (Exception e) {
+            logger.error("Error updating GTFS data status", e);
+        }
+    }
+
+    private void downloadGTFSData() {
+        try {
+            logger.info("Starting GTFS data download...");
+
+            Platform.runLater(() -> {
+                webEngine.executeScript(
+                    "if(typeof showDownloadProgress === 'function') { " +
+                    "showDownloadProgress('Downloading GTFS data...'); }"
+                );
+            });
+
+            // Download asynchronously
+            onlineDataService.downloadGTFSZipAsync().thenAccept(path -> {
+                logger.info("GTFS data downloaded to: " + path);
+
+                // Load the downloaded data
+                try {
+                    // TODO: gtfsDataManager.loadStaticGTFS(path.toString()); - Method not yet implemented
+                    // Use initializeStaticData instead
+                    gtfsDataManager.initializeStaticData(path.toString());
+                    syncGTFSData();
+
+                    Platform.runLater(() -> {
+                        webEngine.executeScript(
+                            "if(typeof showDownloadSuccess === 'function') { " +
+                            "showDownloadSuccess('GTFS data downloaded and loaded successfully'); }"
+                        );
+                        updateGTFSDataStatus();
+                    });
+                } catch (Exception e) {
+                    logger.error("Error loading downloaded GTFS data", e);
+                    Platform.runLater(() -> {
+                        webEngine.executeScript(
+                            "if(typeof showDownloadError === 'function') { " +
+                            "showDownloadError('Failed to load GTFS data'); }"
+                        );
+                    });
+                }
+            }).exceptionally(ex -> {
+                logger.error("Error downloading GTFS data", ex);
+                Platform.runLater(() -> {
+                    webEngine.executeScript(
+                        "if(typeof showDownloadError === 'function') { " +
+                        "showDownloadError('Failed to download GTFS data'); }"
+                    );
+                });
+                return null;
+            });
+
+        } catch (Exception e) {
+            logger.error("Error initiating GTFS data download", e);
+        }
+    }
+
+    private void clearGTFSData() {
+        try {
+            logger.info("Clearing GTFS data...");
+
+            dataSyncService.clearRepositoryData();
+            onlineDataService.clearCache();
+
+            Platform.runLater(() -> {
+                webEngine.executeScript(
+                    "if(typeof showClearSuccess === 'function') { " +
+                    "showClearSuccess('GTFS data cleared successfully'); }"
+                );
+                updateGTFSDataStatus();
+            });
+
+            logger.info("GTFS data cleared successfully");
+        } catch (Exception e) {
+            logger.error("Error clearing GTFS data", e);
+            Platform.runLater(() -> {
+                webEngine.executeScript(
+                    "if(typeof showClearError === 'function') { " +
+                    "showClearError('Failed to clear GTFS data'); }"
+                );
+            });
+        }
+    }
+
+    private void syncGTFSData() {
+        try {
+            logger.info("Synchronizing GTFS data...");
+
+            Platform.runLater(() -> {
+                webEngine.executeScript(
+                    "if(typeof showSyncProgress === 'function') { " +
+                    "showSyncProgress('Synchronizing data...'); }"
+                );
+            });
+
+            dataSyncService.syncFromGTFSDataManager(gtfsDataManager);
+
+            Platform.runLater(() -> {
+                webEngine.executeScript(
+                    "if(typeof showSyncSuccess === 'function') { " +
+                    "showSyncSuccess('Data synchronized successfully'); }"
+                );
+            });
+
+            logger.info("GTFS data synchronized successfully");
+        } catch (Exception e) {
+            logger.error("Error synchronizing GTFS data", e);
+            Platform.runLater(() -> {
+                webEngine.executeScript(
+                    "if(typeof showSyncError === 'function') { " +
+                    "showSyncError('Failed to synchronize data'); }"
+                );
+            });
+        }
+    }
+
+    private void clearCache() {
+        try {
+            logger.info("Clearing cache...");
+
+            offlineModeManager.clearOfflineCache();
+
+            Platform.runLater(() -> {
+                webEngine.executeScript(
+                    "if(typeof showCacheCleared === 'function') { " +
+                    "showCacheCleared('Cache cleared successfully'); }"
+                );
+            });
+
+            logger.info("Cache cleared successfully");
+        } catch (Exception e) {
+            logger.error("Error clearing cache", e);
+        }
+    }
+
+    private void viewCacheStats() {
+        try {
+            logger.info("Viewing cache stats...");
+
+            Map<String, Object> offlineStatus = offlineModeManager.getOfflineStatus();
+            int cachedDataCount = (int) offlineStatus.get("cachedDataCount");
+
+            Path cacheDir = onlineDataService.getCacheDirectory();
+            long cacheSize = java.nio.file.Files.walk(cacheDir)
+                .filter(p -> p.toFile().isFile())
+                .mapToLong(p -> p.toFile().length())
+                .sum();
+
+            String cacheSizeFormatted = formatBytes(cacheSize);
+
+            Platform.runLater(() -> {
+                webEngine.executeScript(
+                    "if(typeof showCacheStats === 'function') { " +
+                    "showCacheStats(" + cachedDataCount + ", '" + cacheSizeFormatted + "'); }"
+                );
+            });
+
+            logger.info("Cache stats displayed");
+        } catch (Exception e) {
+            logger.error("Error viewing cache stats", e);
+        }
+    }
+
+    private void syncData() {
+        try {
+            logger.info("Synchronizing data...");
+
+            Platform.runLater(() -> {
+                webEngine.executeScript(
+                    "if(typeof showSyncProgress === 'function') { " +
+                    "showSyncProgress('Synchronizing...'); }"
+                );
+            });
+
+            // Check for updates
+            if (onlineDataService.isUpdateAvailable()) {
+                logger.info("Update available, downloading...");
+                downloadGTFSData();
+            } else {
+                Platform.runLater(() -> {
+                    webEngine.executeScript(
+                        "if(typeof showSyncSuccess === 'function') { " +
+                        "showSyncSuccess('Data is up to date'); }"
+                    );
+                });
+            }
+
+        } catch (Exception e) {
+            logger.error("Error syncing data", e);
+            Platform.runLater(() -> {
+                webEngine.executeScript(
+                    "if(typeof showSyncError === 'function') { " +
+                    "showSyncError('Failed to sync data'); }"
+                );
+            });
+        }
+    }
+
+    private String formatBytes(long bytes) {
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024 * 1024) return String.format("%.1f KB", bytes / 1024.0);
+        if (bytes < 1024 * 1024 * 1024) return String.format("%.1f MB", bytes / (1024.0 * 1024.0));
+        return String.format("%.1f GB", bytes / (1024.0 * 1024.0 * 1024.0));
+    }
+
+    /**
+     * Load HTML background with language-aware path
+     */
+    private void loadHTMLBackground(WebView webView) {
+        try {
+            String htmlPath = languageManager.getHTMLResourcePath("settings/settings.html");
+            URL htmlUrl = getClass().getResource(htmlPath);
+
+            if (htmlUrl == null) {
+                logger.error("Could not find settings.html at path: " + htmlPath);
+                return;
+            }
+
+            logger.info("Loading HTML from: " + htmlUrl);
+            webEngine.load(htmlUrl.toExternalForm());
+
+            // Add listeners only once to prevent accumulation
+            if (!listenersConfigured) {
+                // Single consolidated listener - no accumulation
+                webEngine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+                    if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
+                        logger.info("HTML loaded successfully");
+                        applyTheme();
+                        loadUserPreferences();
+                        setupSettingsHandlers();
+                        updateSettingsUI();
+                    } else if (newState == javafx.concurrent.Worker.State.FAILED) {
+                        logger.error("Failed to load HTML file");
+                    }
+                });
+                listenersConfigured = true;
+            }
+
+        } catch (Exception e) {
+            logger.error("Error loading HTML file", e);
+        }
+    }
+
+    /**
+     * Setup language change listener to reload HTML when language changes
+     */
+    private void setupLanguageListener(WebView webView) {
+        languageManager.addLanguageChangeListener(() -> {
+            logger.info("Language changed, reloading HTML...");
+            Platform.runLater(() -> {
+                loadHTMLBackground(webView);
+            });
+        });
+    }
+}

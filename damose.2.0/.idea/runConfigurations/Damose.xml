@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Damose" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.rometransit.app.Damose" />
+    <module name="damose" />
+    <option name="VM_PARAMETERS" value="--enable-native-access=ALL-UNNAMED --add-modules=javafx.controls,javafx.fxml,javafx.web -Xms512m -Xmx2048m -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+HeapDumpOnOutOfMemoryError" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="com.rometransit.app.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
